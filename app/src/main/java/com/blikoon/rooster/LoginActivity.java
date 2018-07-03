@@ -71,8 +71,8 @@ public class LoginActivity extends AppCompatActivity
                 return false;
             }
         });
-        mJidView.setText("alhasan@ckotha.com");
-        mPasswordView.setText("mist");
+        mJidView.setText(R.string.default_username);
+        mPasswordView.setText(R.string.default_password);
         Button mJidSignInButton = (Button) findViewById(R.id.email_sign_in_button);
         mJidSignInButton.setOnClickListener(new OnClickListener() {
             @Override

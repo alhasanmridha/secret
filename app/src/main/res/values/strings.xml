@@ -14,4 +14,6 @@
         completions."
     </string>
     <string name="rooster_logout">Logout</string>
+    <string name="default_username">alhasan@ckotha.com</string>
+    <string name="default_password">mist</string>
 </resources>
