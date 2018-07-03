@@ -235,7 +235,7 @@ public class RoosterConnection implements ConnectionListener {
         JingleManager.setJingleServiceEnabled();
         JingleManager.setServiceEnabled(mConnection,true);
         jingleManager.addJingleSessionRequestListener((request) ->{
-            Log.i("File","request is getting from "+request.getFrom());
+            Log.i("JingleListener","request is getting from "+request.getFrom());
         });
     }
 
