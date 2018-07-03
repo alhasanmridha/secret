@@ -7,6 +7,8 @@ import android.content.IntentFilter;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.widget.Toast;
 
 
@@ -97,5 +99,12 @@ public class ChatActivity extends AppCompatActivity {
         registerReceiver(mBroadcastReceiver,filter);
 
 
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater menuInflater = getMenuInflater();
+        menuInflater.inflate(R.menu.chat_window_menu,menu);
+        return true;
     }
 }

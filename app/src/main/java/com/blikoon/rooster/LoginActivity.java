@@ -71,7 +71,8 @@ public class LoginActivity extends AppCompatActivity
                 return false;
             }
         });
-
+        mJidView.setText("alhasan@ckotha.com");
+        mPasswordView.setText("mist");
         Button mJidSignInButton = (Button) findViewById(R.id.email_sign_in_button);
         mJidSignInButton.setOnClickListener(new OnClickListener() {
             @Override
@@ -243,7 +244,7 @@ public class LoginActivity extends AppCompatActivity
 
     private boolean isPasswordValid(String password) {
         //TODO: Replace this with your own logic
-        return password.length() > 4;
+        return password.length() > 3;
     }
 
     /**

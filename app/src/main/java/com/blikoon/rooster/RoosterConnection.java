@@ -55,7 +55,7 @@ public class RoosterConnection implements ConnectionListener {
     }
 
 
-    public RoosterConnection( Context context)
+    RoosterConnection(Context context)
     {
         Log.d(TAG,"RoosterConnection Constructor called.");
         mApplicationContext = context.getApplicationContext();
@@ -81,18 +81,12 @@ public class RoosterConnection implements ConnectionListener {
         Log.d(TAG, "Connecting to server " + mServiceName);
 
         XMPPTCPConnectionConfiguration conf = XMPPTCPConnectionConfiguration.builder()
-                .setHostAddress(InetAddress.getByName("192.168.1.110"))
-                .setXmppDomain(JidCreate.domainBareFrom("localhost"))
-//                .setHost("192.168.1.110")
+                .setHostAddress(InetAddress.getByName(mServiceName))
+                .setXmppDomain(JidCreate.domainBareFrom(mServiceName))
                 .setResource("Rooster")
-
-                //Was facing this issue
-                //https://discourse.igniterealtime.org/t/connection-with-ssl-fails-with-java-security-keystoreexception-jks-not-found/62566
-                .setKeystoreType(null) //This line seems to get rid of the problem
-
+                .setKeystoreType(null)
                 .setSecurityMode(ConnectionConfiguration.SecurityMode.disabled)
                 .setCompressionEnabled(true).build();
-
         Log.d(TAG, "Username : "+mUsername);
         Log.d(TAG, "Password : "+mPassword);
         Log.d(TAG, "Server : "+mServiceName);
@@ -206,7 +200,7 @@ public class RoosterConnection implements ConnectionListener {
         Log.d(TAG,"Disconnecting from serser "+ mServiceName);
 
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(mApplicationContext);
-        prefs.edit().putBoolean("xmpp_logged_in",false).commit();
+        prefs.edit().putBoolean("xmpp_logged_in",false).apply();
 
 
         if (mConnection != null)

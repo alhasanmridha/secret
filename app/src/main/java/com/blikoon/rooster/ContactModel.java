@@ -36,12 +36,12 @@ public class ContactModel {
 
         Contact contact1 = new Contact("alhasan@localhost");
         mContacts.add(contact1);
+        Contact contact4 = new Contact("alhasantest@ckotha.com");
+        mContacts.add(contact4);
         Contact contact2 = new Contact("alhasantest@localhost");
         mContacts.add(contact2);
         Contact contact3 = new Contact("mahbub@localhost");
         mContacts.add(contact3);
-        Contact contact4 = new Contact("User4@server.com");
-        mContacts.add(contact4);
         Contact contact5 = new Contact("User5@server.com");
         mContacts.add(contact5);
         Contact contact6 = new Contact("User6@server.com");
