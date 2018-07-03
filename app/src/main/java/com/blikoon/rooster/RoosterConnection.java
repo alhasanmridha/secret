@@ -22,12 +22,15 @@ import org.jivesoftware.smack.chat2.IncomingChatMessageListener;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
+import org.jivesoftware.smackx.jingleold.JingleManager;
+import org.jivesoftware.smackx.jingleold.listeners.JingleListener;
 import org.jxmpp.jid.EntityBareJid;
 import org.jxmpp.jid.impl.JidCreate;
 import org.jxmpp.stringprep.XmppStringprepException;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.util.ArrayList;
 
 /**
  * Updated by gakwaya on Oct/08/2017.
@@ -41,6 +44,7 @@ public class RoosterConnection implements ConnectionListener {
     private  final String mPassword;
     private  final String mServiceName;
     private XMPPTCPConnection mConnection;
+    private JingleManager jingleManager;
     private BroadcastReceiver uiThreadMessageReceiver;//Receives messages from the ui thread.
 
 
@@ -83,7 +87,7 @@ public class RoosterConnection implements ConnectionListener {
         XMPPTCPConnectionConfiguration conf = XMPPTCPConnectionConfiguration.builder()
                 .setHostAddress(InetAddress.getByName(mServiceName))
                 .setXmppDomain(JidCreate.domainBareFrom(mServiceName))
-                .setResource("Rooster")
+                .setResource("jingle")
                 .setKeystoreType(null)
                 .setSecurityMode(ConnectionConfiguration.SecurityMode.disabled)
                 .setCompressionEnabled(true).build();
@@ -217,7 +221,23 @@ public class RoosterConnection implements ConnectionListener {
         }
 
     }
-
+    private void prepareJingleManager(){
+        try {
+            jingleManager = new JingleManager(mConnection,new ArrayList<>());
+        } catch (XMPPException e) {
+            e.printStackTrace();
+        } catch (SmackException e) {
+            e.printStackTrace();
+        }
+    }
+    private void initiateJingleListener(){
+        prepareJingleManager();
+        JingleManager.setJingleServiceEnabled();
+        JingleManager.setServiceEnabled(mConnection,true);
+        jingleManager.addJingleSessionRequestListener((request) ->{
+            Log.i("File","request is getting from "+request.getFrom());
+        });
+    }
 
     @Override
     public void connected(XMPPConnection connection) {
@@ -231,13 +251,15 @@ public class RoosterConnection implements ConnectionListener {
         RoosterConnectionService.sLoggedInState=LoggedInState.LOGGED_IN;
         Log.d(TAG,"Authenticated Successfully");
         showContactListActivityWhenAuthenticated();
+        initiateJingleListener();
+
     }
 
 
     @Override
     public void connectionClosed() {
         RoosterConnectionService.sConnectionState=ConnectionState.DISCONNECTED;
-        Log.d(TAG,"Connectionclosed()");
+        Log.d(TAG,"ConnectionClosed()");
 
     }
 
