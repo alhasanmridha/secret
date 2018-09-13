@@ -21,6 +21,7 @@ public class RoosterConnectionService extends Service {
 
     public static final String UI_AUTHENTICATED = "com.blikoon.rooster.uiauthenticated";
     public static final String SEND_MESSAGE = "com.blikoon.rooster.sendmessage";
+    public static final String START_CALL = "com.blikoon.rooster.startcall";
     public static final String BUNDLE_MESSAGE_BODY = "b_body";
     public static final String BUNDLE_TO = "b_to";
 

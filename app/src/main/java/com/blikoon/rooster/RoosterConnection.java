@@ -23,7 +23,15 @@ import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
 import org.jivesoftware.smackx.jingleold.JingleManager;
+import org.jivesoftware.smackx.jingleold.JingleSession;
 import org.jivesoftware.smackx.jingleold.listeners.JingleListener;
+import org.jivesoftware.smackx.jingleold.listeners.JingleSessionListener;
+import org.jivesoftware.smackx.jingleold.media.JingleMediaManager;
+import org.jivesoftware.smackx.jingleold.media.PayloadType;
+import org.jivesoftware.smackx.jingleold.mediaimpl.jspeex.SpeexMediaManager;
+import org.jivesoftware.smackx.jingleold.mediaimpl.sshare.ScreenShareMediaManager;
+import org.jivesoftware.smackx.jingleold.nat.ICETransportManager;
+import org.jivesoftware.smackx.jingleold.nat.TransportCandidate;
 import org.jxmpp.jid.EntityBareJid;
 import org.jxmpp.jid.impl.JidCreate;
 import org.jxmpp.stringprep.XmppStringprepException;
@@ -31,6 +39,7 @@ import org.jxmpp.stringprep.XmppStringprepException;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Updated by gakwaya on Oct/08/2017.
@@ -44,7 +53,10 @@ public class RoosterConnection implements ConnectionListener {
     private  final String mPassword;
     private  final String mServiceName;
     private XMPPTCPConnection mConnection;
-    private JingleManager jingleManager;
+    private JingleManager jingleManager = null;
+    private JingleManager jm = null;
+    private JingleSession incoming = null;
+    private JingleSession outgoing = null;
     private BroadcastReceiver uiThreadMessageReceiver;//Receives messages from the ui thread.
 
 
@@ -85,9 +97,9 @@ public class RoosterConnection implements ConnectionListener {
         Log.d(TAG, "Connecting to server " + mServiceName);
 
         XMPPTCPConnectionConfiguration conf = XMPPTCPConnectionConfiguration.builder()
-                .setHostAddress(InetAddress.getByName(mServiceName))
+                .setHostAddress(InetAddress.getByName("192.168.0.179"))
                 .setXmppDomain(JidCreate.domainBareFrom(mServiceName))
-                .setResource("jingle")
+                .setResource("xmpp")
                 .setKeystoreType(null)
                 .setSecurityMode(ConnectionConfiguration.SecurityMode.disabled)
                 .setCompressionEnabled(true).build();
@@ -162,6 +174,9 @@ public class RoosterConnection implements ConnectionListener {
                     sendMessage(intent.getStringExtra(RoosterConnectionService.BUNDLE_MESSAGE_BODY),
                             intent.getStringExtra(RoosterConnectionService.BUNDLE_TO));
                 }
+                else if(action.equals(RoosterConnectionService.START_CALL)){
+                    //
+                }
             }
         };
 
@@ -231,12 +246,57 @@ public class RoosterConnection implements ConnectionListener {
         }
     }
     private void initiateJingleListener(){
+//        ICETransportManager icetm0 = new ICETransportManager(mConnection, "stun:stunserver.org", 3478);
+//        List<JingleMediaManager> mediaManagers = new ArrayList<>();
+//        mediaManagers.add(new SpeexMediaManager(icetm0));
+//        mediaManagers.add(new ScreenShareMediaManager(icetm0));
         prepareJingleManager();
+//        jingleManager.addCreationListener(icetm0);
         JingleManager.setJingleServiceEnabled();
         JingleManager.setServiceEnabled(mConnection,true);
         jingleManager.addJingleSessionRequestListener((request) ->{
-            Log.i("JingleListener","request is getting from "+request.getFrom());
             Log.i("JingleListener","request is getting from "+request.getJingle().getContentsList().get(0).getDescription());
+            try {
+                incoming = request.accept();
+            } catch (XMPPException e) {
+                e.printStackTrace();
+            } catch (SmackException e) {
+                e.printStackTrace();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            incoming.startIncoming();
+            incoming.addListener(new JingleSessionListener() {
+                @Override
+                public void sessionEstablished(PayloadType payloadType, TransportCandidate transportCandidate, TransportCandidate transportCandidate1, JingleSession jingleSession) throws SmackException.NotConnectedException, InterruptedException {
+                    Log.i("Session","----------session is established--------");
+                }
+
+                @Override
+                public void sessionDeclined(String s, JingleSession jingleSession) {
+                    Log.i("Session","----------session is declined--------");
+                }
+
+                @Override
+                public void sessionRedirected(String s, JingleSession jingleSession) {
+
+                }
+
+                @Override
+                public void sessionClosed(String s, JingleSession jingleSession) {
+                    Log.i("Session","----------session is closed--------");
+                }
+
+                @Override
+                public void sessionClosedOnError(XMPPException e, JingleSession jingleSession) {
+
+                }
+
+                @Override
+                public void sessionMediaReceived(JingleSession jingleSession, String s) {
+                    Log.i("Session","----------session media received--------");
+                }
+            });
         });
     }
 

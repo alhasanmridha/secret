@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.widget.Toast;
 
 
@@ -59,7 +60,19 @@ public class ChatActivity extends AppCompatActivity {
         contactJid = intent.getStringExtra("EXTRA_CONTACT_JID");
         setTitle(contactJid);
     }
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if(item.getItemId() == R.id.call)
+        {
+            Intent intent = new Intent(RoosterConnectionService.START_CALL);
+            intent.putExtra(RoosterConnectionService.BUNDLE_TO, contactJid);
 
+            sendBroadcast(intent);
+
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
     @Override
     protected void onPause() {
         super.onPause();
