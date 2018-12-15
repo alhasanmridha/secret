@@ -29,7 +29,6 @@ import org.jivesoftware.smackx.jingleold.listeners.JingleSessionListener;
 import org.jivesoftware.smackx.jingleold.media.JingleMediaManager;
 import org.jivesoftware.smackx.jingleold.media.PayloadType;
 import org.jivesoftware.smackx.jingleold.mediaimpl.jspeex.SpeexMediaManager;
-import org.jivesoftware.smackx.jingleold.mediaimpl.sshare.ScreenShareMediaManager;
 import org.jivesoftware.smackx.jingleold.nat.ICETransportManager;
 import org.jivesoftware.smackx.jingleold.nat.TransportCandidate;
 import org.jxmpp.jid.EntityBareJid;
