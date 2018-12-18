@@ -34,8 +34,9 @@ import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.filter.StanzaFilter;
 import org.jivesoftware.smack.packet.IQ;
 import org.jivesoftware.smack.packet.Stanza;
-import org.jivesoftware.smack.packet.StanzaError;
 
+import org.jivesoftware.smack.packet.StanzaErrorTextElement;
+import org.jivesoftware.smack.packet.XMPPError;
 import org.jivesoftware.smackx.jingleold.listeners.JingleListener;
 import org.jivesoftware.smackx.jingleold.listeners.JingleMediaListener;
 import org.jivesoftware.smackx.jingleold.listeners.JingleSessionListener;
@@ -288,7 +289,7 @@ public class JingleSession extends JingleNegotiator implements MediaReceivedList
 
         String responseId;
 
-        LOGGER.fine("Packet: " + iq.toXML(null));
+        LOGGER.fine("Packet: " + iq.toXML());
 
         try {
 
@@ -718,21 +719,21 @@ public class JingleSession extends JingleNegotiator implements MediaReceivedList
 
                         String sid = jin.getSid();
                         if (sid == null || !sid.equals(getSid())) {
-                            LOGGER.fine("Ignored Jingle(SID) " + sid + "|" + getSid() + " :" + iq.toXML(null));
+                            LOGGER.fine("Ignored Jingle(SID) " + sid + "|" + getSid() + " :" + iq.toXML());
                             return false;
                         }
                         Jid ini = jin.getInitiator();
                         if (!ini.equals(getInitiator())) {
-                            LOGGER.fine("Ignored Jingle(INI): " + iq.toXML(null));
+                            LOGGER.fine("Ignored Jingle(INI): " + iq.toXML());
                             return false;
                         }
                     } else {
                         // We accept some non-Jingle IQ packets: ERRORs and ACKs
                         if (iq.getType().equals(IQ.Type.set)) {
-                            LOGGER.fine("Ignored Jingle(TYPE): " + iq.toXML(null));
+                            LOGGER.fine("Ignored Jingle(TYPE): " + iq.toXML());
                             return false;
                         } else if (iq.getType().equals(IQ.Type.get)) {
-                            LOGGER.fine("Ignored Jingle(TYPE): " + iq.toXML(null));
+                            LOGGER.fine("Ignored Jingle(TYPE): " + iq.toXML());
                             return false;
                         }
                     }
@@ -1053,7 +1054,7 @@ public class JingleSession extends JingleNegotiator implements MediaReceivedList
         IQ errorPacket = null;
         if (jingleError != null) {
             // TODO This is wrong according to XEP-166 § 10, but this jingle implementation is deprecated anyways
-            StanzaError.Builder builder = StanzaError.getBuilder(StanzaError.Condition.undefined_condition);
+            XMPPError.Builder builder = XMPPError.getBuilder(XMPPError.Condition.undefined_condition);
             builder.addExtension(jingleError);
 
             errorPacket = IQ.createErrorResponse(iq, builder);
@@ -1062,7 +1063,7 @@ public class JingleSession extends JingleNegotiator implements MediaReceivedList
 
             // NO! Let the normal state machinery do all of the sending.
             // getConnection().sendStanza(perror);
-            LOGGER.severe("Error sent: " + errorPacket.toXML(null));
+            LOGGER.severe("Error sent: " + errorPacket.toXML());
         }
         return errorPacket;
     }

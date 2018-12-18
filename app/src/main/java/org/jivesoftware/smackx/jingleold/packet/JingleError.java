@@ -75,7 +75,6 @@ public class JingleError implements ExtensionElement {
      *
      * @return the error as XML.
      */
-    @Override
     public String toXML(String enclosingNamespace) {
         StringBuilder buf = new StringBuilder();
         if (message != null) {
@@ -126,6 +125,18 @@ public class JingleError implements ExtensionElement {
     @Override
     public String getNamespace() {
         return NAMESPACE;
+    }
+
+    @Override
+    public CharSequence toXML() {
+        StringBuilder buf = new StringBuilder();
+        if (message != null) {
+            buf.append("<error type=\"cancel\">");
+            buf.append('<').append(message).append(" xmlns=\"").append(NAMESPACE).append(
+                    "\"/>");
+            buf.append("</error>");
+        }
+        return buf.toString();
     }
 
     public static class Provider extends ExtensionElementProvider<ExtensionElement> {

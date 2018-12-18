@@ -22,16 +22,19 @@ import org.jivesoftware.smack.chat2.IncomingChatMessageListener;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
+import org.jivesoftware.smackx.jingleold.ContentNegotiator;
 import org.jivesoftware.smackx.jingleold.JingleManager;
 import org.jivesoftware.smackx.jingleold.JingleSession;
 import org.jivesoftware.smackx.jingleold.listeners.JingleListener;
 import org.jivesoftware.smackx.jingleold.listeners.JingleSessionListener;
 import org.jivesoftware.smackx.jingleold.media.JingleMediaManager;
+import org.jivesoftware.smackx.jingleold.media.JingleMediaSession;
 import org.jivesoftware.smackx.jingleold.media.PayloadType;
-import org.jivesoftware.smackx.jingleold.mediaimpl.jspeex.SpeexMediaManager;
+import org.jivesoftware.smackx.jingleold.nat.BasicTransportManager;
 import org.jivesoftware.smackx.jingleold.nat.ICETransportManager;
 import org.jivesoftware.smackx.jingleold.nat.TransportCandidate;
 import org.jxmpp.jid.EntityBareJid;
+import org.jxmpp.jid.EntityFullJid;
 import org.jxmpp.jid.impl.JidCreate;
 import org.jxmpp.stringprep.XmppStringprepException;
 
@@ -96,9 +99,9 @@ public class RoosterConnection implements ConnectionListener {
         Log.d(TAG, "Connecting to server " + mServiceName);
 
         XMPPTCPConnectionConfiguration conf = XMPPTCPConnectionConfiguration.builder()
-                .setHostAddress(InetAddress.getByName("192.168.0.179"))
+                .setHostAddress(InetAddress.getByName(mServiceName))
                 .setXmppDomain(JidCreate.domainBareFrom(mServiceName))
-                .setResource("xmpp")
+                .setResource(RoosterConnectionService.RESOURCE)
                 .setKeystoreType(null)
                 .setSecurityMode(ConnectionConfiguration.SecurityMode.disabled)
                 .setCompressionEnabled(true).build();
@@ -121,36 +124,33 @@ public class RoosterConnection implements ConnectionListener {
             e.printStackTrace();
         }
 
-        ChatManager.getInstanceFor(mConnection).addIncomingListener(new IncomingChatMessageListener() {
-            @Override
-            public void newIncomingMessage(EntityBareJid messageFrom, Message message, Chat chat) {
-                ///ADDED
-                Log.d(TAG,"message.getBody() :"+message.getBody());
-                Log.d(TAG,"message.getFrom() :"+message.getFrom());
+        ChatManager.getInstanceFor(mConnection).addIncomingListener((messageFrom, message, chat) -> {
+            ///ADDED
+            Log.d(TAG,"message.getBody() :"+message.getBody());
+            Log.d(TAG,"message.getFrom() :"+message.getFrom());
 
-                String from = message.getFrom().toString();
+            String from = message.getFrom().toString();
 
-                String contactJid="";
-                if ( from.contains("/"))
-                {
-                    contactJid = from.split("/")[0];
-                    Log.d(TAG,"The real jid is :" +contactJid);
-                    Log.d(TAG,"The message is from :" +from);
-                }else
-                {
-                    contactJid=from;
-                }
-
-                //Bundle up the intent and send the broadcast.
-                Intent intent = new Intent(RoosterConnectionService.NEW_MESSAGE);
-                intent.setPackage(mApplicationContext.getPackageName());
-                intent.putExtra(RoosterConnectionService.BUNDLE_FROM_JID,contactJid);
-                intent.putExtra(RoosterConnectionService.BUNDLE_MESSAGE_BODY,message.getBody());
-                mApplicationContext.sendBroadcast(intent);
-                Log.d(TAG,"Received message from :"+contactJid+" broadcast sent.");
-                ///ADDED
-
+            String contactJid="";
+            if ( from.contains("/"))
+            {
+                contactJid = from.split("/")[0];
+                Log.d(TAG,"The real jid is :" +contactJid);
+                Log.d(TAG,"The message is from :" +from);
+            }else
+            {
+                contactJid=from;
             }
+
+            //Bundle up the intent and send the broadcast.
+            Intent intent = new Intent(RoosterConnectionService.NEW_MESSAGE);
+            intent.setPackage(mApplicationContext.getPackageName());
+            intent.putExtra(RoosterConnectionService.BUNDLE_FROM_JID,contactJid);
+            intent.putExtra(RoosterConnectionService.BUNDLE_MESSAGE_BODY,message.getBody());
+            mApplicationContext.sendBroadcast(intent);
+            Log.d(TAG,"Received message from :"+contactJid+" broadcast sent.");
+            ///ADDED
+
         });
 
 
@@ -174,13 +174,27 @@ public class RoosterConnection implements ConnectionListener {
                             intent.getStringExtra(RoosterConnectionService.BUNDLE_TO));
                 }
                 else if(action.equals(RoosterConnectionService.START_CALL)){
-                    //
+                    try {
+                        outgoing = jingleManager.createOutgoingJingleSession(JidCreate.entityFullFrom(intent.getStringExtra(RoosterConnectionService.BUNDLE_TO)));
+                        ContentNegotiator contentNegotiator = new ContentNegotiator(outgoing,ContentNegotiator.INITIATOR,mUsername);
+                        outgoing.addContentNegotiator(contentNegotiator);
+                        outgoing.startOutgoing();
+                    } catch (SmackException e) {
+                        e.printStackTrace();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    } catch (XmppStringprepException e) {
+                        e.printStackTrace();
+                    } catch (XMPPException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         };
 
         IntentFilter filter = new IntentFilter();
         filter.addAction(RoosterConnectionService.SEND_MESSAGE);
+        filter.addAction(RoosterConnectionService.START_CALL);
         mApplicationContext.registerReceiver(uiThreadMessageReceiver,filter);
 
     }
@@ -235,9 +249,9 @@ public class RoosterConnection implements ConnectionListener {
         }
 
     }
-    private void prepareJingleManager(){
+    private void prepareJingleManager(List<JingleMediaManager> mediaManagers){
         try {
-            jingleManager = new JingleManager(mConnection,new ArrayList<>());
+            jingleManager = new JingleManager(mConnection,mediaManagers);
         } catch (XMPPException e) {
             e.printStackTrace();
         } catch (SmackException e) {
@@ -245,12 +259,22 @@ public class RoosterConnection implements ConnectionListener {
         }
     }
     private void initiateJingleListener(){
-//        ICETransportManager icetm0 = new ICETransportManager(mConnection, "stun:stunserver.org", 3478);
-//        List<JingleMediaManager> mediaManagers = new ArrayList<>();
-//        mediaManagers.add(new SpeexMediaManager(icetm0));
-//        mediaManagers.add(new ScreenShareMediaManager(icetm0));
-        prepareJingleManager();
-//        jingleManager.addCreationListener(icetm0);
+        BasicTransportManager icetm0 = new BasicTransportManager();
+        List<JingleMediaManager> mediaManagers = new ArrayList<>();
+        mediaManagers.add(new JingleMediaManager(icetm0) {
+            @Override
+            public List<PayloadType> getPayloads() {
+                List<PayloadType> payloadTypes = new ArrayList<>();
+                payloadTypes.add(new PayloadType.Audio());
+                return payloadTypes;
+            }
+
+            @Override
+            public JingleMediaSession createMediaSession(PayloadType payloadType, TransportCandidate remote, TransportCandidate local, JingleSession jingleSession) {
+                return null;
+            }
+        });
+        prepareJingleManager(mediaManagers);
         JingleManager.setJingleServiceEnabled();
         JingleManager.setServiceEnabled(mConnection,true);
         jingleManager.addJingleSessionRequestListener((request) ->{

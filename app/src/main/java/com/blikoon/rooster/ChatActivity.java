@@ -65,7 +65,7 @@ public class ChatActivity extends AppCompatActivity {
         if(item.getItemId() == R.id.call)
         {
             Intent intent = new Intent(RoosterConnectionService.START_CALL);
-            intent.putExtra(RoosterConnectionService.BUNDLE_TO, contactJid);
+            intent.putExtra(RoosterConnectionService.BUNDLE_TO, contactJid+"/"+RoosterConnectionService.RESOURCE);
 
             sendBroadcast(intent);
 

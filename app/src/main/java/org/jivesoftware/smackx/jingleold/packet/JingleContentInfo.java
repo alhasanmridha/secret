@@ -84,7 +84,7 @@ public class JingleContentInfo implements ExtensionElement {
     }
 
     @Override
-    public String toXML(String enclosingNamespace) {
+    public CharSequence toXML() {
         StringBuilder buf = new StringBuilder();
         buf.append('<').append(getElementName()).append(" xmlns=\"");
         buf.append(getNamespace()).append("\" ");

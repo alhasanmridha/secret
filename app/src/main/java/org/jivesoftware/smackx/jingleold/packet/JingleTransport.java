@@ -152,7 +152,7 @@ public class JingleTransport implements ExtensionElement {
      * Return the XML representation for this element.
      */
     @Override
-    public String toXML(String enclosingNamespace) {
+    public String toXML() {
         StringBuilder buf = new StringBuilder();
 
         buf.append('<').append(getElementName()).append(" xmlns=\"");

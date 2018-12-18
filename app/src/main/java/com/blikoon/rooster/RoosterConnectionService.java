@@ -27,7 +27,7 @@ public class RoosterConnectionService extends Service {
 
     public static final String NEW_MESSAGE = "com.blikoon.rooster.newmessage";
     public static final String BUNDLE_FROM_JID = "b_from";
-
+    public static final String RESOURCE = "xmpp";
     public static RoosterConnection.ConnectionState sConnectionState;
     public static RoosterConnection.LoggedInState sLoggedInState;
     private boolean mActive;//Stores whether or not the thread is active

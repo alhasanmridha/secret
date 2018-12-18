@@ -148,7 +148,7 @@ public abstract class JingleContentDescription implements ExtensionElement {
      * @return a string with the XML representation
      */
     @Override
-    public String toXML(String enclosingNamespace) {
+    public String toXML() {
         StringBuilder buf = new StringBuilder();
 
         synchronized (payloads) {
